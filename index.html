@@ -701,6 +701,36 @@
     font-weight: 700;
     margin-bottom: 4px;
     color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .speak-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(120, 100, 160, 0.1);
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 15px;
+    transition: transform 0.15s, background 0.2s;
+    flex-shrink: 0;
+  }
+  .speak-btn:hover {
+    transform: scale(1.15);
+    background: rgba(120, 100, 160, 0.18);
+  }
+  .speak-btn:active { transform: scale(0.95); }
+  .speak-btn.playing {
+    animation: speakPulse 0.6s ease infinite;
+  }
+  @keyframes speakPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
   }
 
   .tooltip-phonetic {
@@ -854,6 +884,10 @@
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   .word-item-meaning {
     font-size: 13px;
@@ -2385,7 +2419,9 @@ function flipCard(el) {
 }
 
 function speakWord(e, word) {
-  e.stopPropagation();
+  // 支持两种调用：speakWord(event, word) 或 speakWord(word)
+  if (typeof e === 'string') { word = e; e = null; }
+  if (e && e.stopPropagation) e.stopPropagation();
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(word);
@@ -2738,7 +2774,10 @@ function showWordTooltip(element) {
   const isKnown = wordbook[word]?.known;
   
   tooltip.innerHTML = `
-    <div class="tooltip-word">${word}</div>
+    <div class="tooltip-word">
+      <span>${word}</span>
+      <button class="speak-btn" onclick="speakWord('${word}')" title="朗读发音">🔊</button>
+    </div>
     <div class="tooltip-phonetic">${vocab.phonetic}</div>
     <div class="tooltip-meaning">${vocab.meaning}</div>
     <div class="tooltip-example">📖 ${vocab.example}</div>
@@ -2965,7 +3004,11 @@ function renderWordbook() {
     
     el.innerHTML = `
       <div class="word-item-main">
-        <div class="word-item-word">${item.word} <span style="font-size:12px;opacity:0.5;">${item.phonetic}</span></div>
+        <div class="word-item-word">
+          <span>${item.word}</span>
+          <button class="speak-btn" onclick="event.stopPropagation(); speakWord('${item.word}')" title="朗读发音">🔊</button>
+          <span style="font-size:12px;opacity:0.5;margin-left:4px;">${item.phonetic}</span>
+        </div>
         <div class="word-item-meaning">${item.meaning}</div>
       </div>
       <span class="word-item-tag">${item.style ? styleNameOf(item.style) : ''}</span>
